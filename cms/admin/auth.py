@@ -11,12 +11,12 @@ def protected(route_function):
         if g.User is None:
             return redirect(url_for('admin.login'))
         return route_function(**kwargs)
-    return wrapped_route_function()
+    return wrapped_route_function
 
 
 @admin_bp.before_app_request
 def load_user():
-    user_id = session.get(user_id)
+    user_id = session.get('user_id')
     if user_id is not None:
         g.user = User.query.get(user_id)
     else:
