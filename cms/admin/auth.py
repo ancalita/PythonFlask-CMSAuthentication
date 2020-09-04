@@ -8,7 +8,7 @@ from flask import render_template, request, redirect, url_for, flash
 def protected(route_function):
     @wraps(route_function)
     def wrapped_route_function(**kwargs):
-        if g.User is None:
+        if g.user is None:
             return redirect(url_for('admin.login'))
         return route_function(**kwargs)
     return wrapped_route_function
@@ -17,10 +17,8 @@ def protected(route_function):
 @admin_bp.before_app_request
 def load_user():
     user_id = session.get('user_id')
-    if user_id is not None:
-        g.user = User.query.get(user_id)
-    else:
-        g.user = None
+    g.user = User.query.get(user_id) if user_id is not None else None
+
 
 @admin_bp.route('/login', methods =["GET", "POST"] )
 def login():
@@ -29,7 +27,7 @@ def login():
         password = request.form['password']
         error = None
 
-        user = User.query.filter_by(username).first()
+        user = User.query.filter_by(username=username).first()
         if user is None:
             error = "Username is required."
         elif not user.check_password(password):
@@ -38,7 +36,7 @@ def login():
         if error is None:
             session.clear()
             session['user_id'] = user.id
-            return redirect('admin.content', type='page')
+            return redirect(url_for('admin.content', type='page'))
 
         flash(error)
 
@@ -47,4 +45,4 @@ def login():
 @admin_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect('admin.login')
+    return redirect(url_for('admin.login'))
